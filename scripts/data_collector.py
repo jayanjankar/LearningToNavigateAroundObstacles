@@ -16,11 +16,11 @@ class Trainer(object):
 		# Add publishers and subscribers
 		image_topic = "/camera/depth/image_raw"
 		pose_topic = '/amcl_pose'
-		vel_topic = '/odom'
+		odom_topic = '/odom'
 		goal_topic = '/move_base/goal'
 		self.image_sub = rospy.Subscriber(image_topic, Image, self.on_frame_received)
 		self.pose_subscriber = rospy.Subscriber(pose_topic, PoseWithCovarianceStamped, self.on_pose_received)
-		self.vel_subscriber = rospy.Subscriber(vel_topic, Odometry, self.on_odom_received)
+		self.vel_subscriber = rospy.Subscriber(odom_topic, Odometry, self.on_odom_received)
 		self.goal_subscriber = rospy.Subscriber(goal_topic, PoseStamped, self.on_goal_received)
 		
 		self.idx = 0	
