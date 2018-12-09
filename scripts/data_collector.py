@@ -23,7 +23,8 @@ class Trainer(object):
 		self.odom_subscriber = rospy.Subscriber(odom_topic, Odometry, self.on_odom_received)
 		self.goal_subscriber = rospy.Subscriber(goal_topic, PoseStamped, self.on_goal_received, queue_size=100)
 		
-		self.idx = 0
+		self.frame_idx = 0
+		self.data_idx = 0
 		self.rate = rate
 
 		self.current_frame = None
@@ -32,19 +33,23 @@ class Trainer(object):
 		self.current_velocity = (0,0,0) # (vx, vy, vz)
 		self.current_goal = (0,0,0) # (x, y, angle_z)
 
+		self.data_dir = 'data'
+
 	def on_frame_received(self, img_msg):
 		self.current_frame = self.bridge.imgmsg_to_cv2(img_msg, desired_encoding="32FC1")
 
-		if self.idx % self.rate == 0:
-			np.save('data/' + str(self.idx) + '.npy' , self.current_frame)
-			#cv2.imwrite('data/' + str(self.idx) + '.png' , frame)
-			#print(frame)
+		if self.frame_idx % self.rate == 0:
+			file_name = str(self.data_idx) + '.npz'
+			file_path = os.path.join(self.data_dir, file_name)
+			np.savez(file_path, self.current_frame, 
+				np.asarray(self.current_orientation), 
+				np.array(self.current_velocity), 
+				np.array(self.current_goal))
+			self.data_idx += 1
+		self.frame_idx += 1
 		
 		#cv2.imshow('Video', frame)
 		#cv2.waitKey(1)
-		#
-		self.idx += 1
-
 
 	def on_pose_received(self, pose):
 		#rospy.loginfo('received pose {} '.format(pose))
@@ -60,7 +65,7 @@ class Trainer(object):
 		angular_vel = odom.twist.twist.angular
 		self.current_velocity = (linear_vel.x, linear_vel.y, angular_vel.z)
 		
-		print('Current velocity: ', self.current_velocity)
+		# print('Current velocity: ', self.current_velocity)
 
 	def on_goal_received(self, goal):
 		goal_pose = goal.pose
@@ -68,7 +73,7 @@ class Trainer(object):
 		goal_orientation = euler_from_quaternion([goal_pose.orientation.x, goal_pose.orientation.y, goal_pose.orientation.z, goal_pose.orientation.w])
 		self.current_goal = (goal_position[0], goal_position[1], goal_orientation[2])
 		
-		print('Current goal: ', self.current_goal)
+		# print('Current goal: ', self.current_goal)
 
 def main():
 	# Initialize node
