@@ -7,7 +7,6 @@ import numpy as np
 from geometry_msgs.msg import PoseWithCovarianceStamped, PoseStamped
 from nav_msgs.msg import Odometry
 from tf.transformations import euler_from_quaternion , quaternion_from_euler 
-	
 
 
 class Trainer(object):
@@ -40,10 +39,10 @@ class Trainer(object):
 			#print(frame)
 
 
-    	def on_pose_received(self, pose):
-        	#rospy.loginfo('received pose {} '.format(pose))
-        	pose = pose.pose.pose
-        	self.current_position  = (pose.position.x, pose.position.y)
+	def on_pose_received(self, pose):
+		#rospy.loginfo('received pose {} '.format(pose))
+		pose = pose.pose.pose
+		self.current_position  = (pose.position.x, pose.position.y)
 		print('pos: ', self.current_position)
 		self.current_orientation = euler_from_quaternion([pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w])
 		print('ori: ' , self.current_orientation)	
