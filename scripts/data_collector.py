@@ -28,10 +28,11 @@ class Trainer(object):
 		self.rate = rate
 
 		self.current_frame = None
-		self.current_position = (0,0) # (x, y)
+		self.current_position = (0,0) # (x,y)
 		self.current_orientation = 0 # (angle_x, angle_y, angle_z)
 		self.current_velocity = (0,0,0) # (vx, vy, vz)
 		self.current_goal = (0,0,0) # (x, y, angle_z)
+		self.current_odom_position = (0,0) # (x,y)
 
 		self.data_dir = 'data'
 
@@ -61,15 +62,18 @@ class Trainer(object):
 		print('Current AMCL orientation: ' , self.current_orientation)	
 	
 	def on_odom_received(self, odom):
+		odom_position = odom.pose.pose
 		linear_vel = odom.twist.twist.linear
 		angular_vel = odom.twist.twist.angular
 		self.current_velocity = (linear_vel.x, linear_vel.y, angular_vel.z)
+		self.current_odom_position = (odom_position.x, odom_position.y)
+		print("Current odom position", self.current_odom_position)
 		
 		# print('Current velocity: ', self.current_velocity)
 
 	def on_goal_received(self, goal):
 		goal_pose = goal.pose
-		goal_position = (goal_pose.position.x, goal_pose.positin.y)
+		goal_position = (goal_pose.position.x, goal_pose.position.y)
 		goal_orientation = euler_from_quaternion([goal_pose.orientation.x, goal_pose.orientation.y, goal_pose.orientation.z, goal_pose.orientation.w])
 		self.current_goal = (goal_position[0], goal_position[1], goal_orientation[2])
 		
