@@ -23,7 +23,7 @@ class Trainer(object):
 		self.odom_subscriber = rospy.Subscriber(odom_topic, Odometry, self.on_odom_received)
 		self.goal_subscriber = rospy.Subscriber(goal_topic, PoseStamped, self.on_goal_received, queue_size=100)
 		
-		self.frame_idx = 0
+		self.frame_idx = 1
 		self.data_idx = 0
 		self.rate = rate
 
@@ -35,6 +35,11 @@ class Trainer(object):
 		self.current_odom_position = (0,0) # (x,y)
 
 		self.data_dir = 'data'
+		for file_i in os.listdir(self.data_dir):
+			if 'npz' in file_i:
+				num = int(file_i.split(".")[0])
+				self.data_idx = max(num, self.data_idx)
+		self.data_idx += 1
 
 	def on_frame_received(self, img_msg):
 		self.current_frame = self.bridge.imgmsg_to_cv2(img_msg, desired_encoding="32FC1")
@@ -42,10 +47,7 @@ class Trainer(object):
 		if self.frame_idx % self.rate == 0:
 			file_name = str(self.data_idx) + '.npz'
 			file_path = os.path.join(self.data_dir, file_name)
-			np.savez(file_path, self.current_frame, 
-				np.asarray(self.current_orientation), 
-				np.array(self.current_velocity), 
-				np.array(self.current_goal))
+			np.savez(file_path, self.current_frame, np.array(self.current_velocity))
 			self.data_idx += 1
 		self.frame_idx += 1
 		
@@ -58,17 +60,20 @@ class Trainer(object):
 		self.current_position  = (pose.position.x, pose.position.y)
 		self.current_orientation = euler_from_quaternion([pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w])
 		
-		print('Current AMCL position: ', self.current_position)
-		print('Current AMCL orientation: ' , self.current_orientation)	
+		#print('Current AMCL position: ', self.current_position)
+		#print('Current AMCL orientation: ' , self.current_orientation)	
 	
 	def on_odom_received(self, odom):
-		odom_position = odom.pose.pose
+		odom_position = odom.pose.pose.position
+		odom_orientation = odom.pose.pose.orientation
 		linear_vel = odom.twist.twist.linear
 		angular_vel = odom.twist.twist.angular
 		self.current_velocity = (linear_vel.x, linear_vel.y, angular_vel.z)
-		self.current_odom_position = (odom_position.x, odom_position.y)
-		print("Current odom position", self.current_odom_position)
-		
+		self.current_odom_position = (odom_position.x, odom_position.y)	
+		self.current_odom_orientation = euler_from_quaternion([odom_orientation.x,
+			odom_orientation.y, odom_orientation.z, odom_orientation.w])
+		#print("Current odom position and orientation", self.current_odom_position,
+		#		self.current_odom_orientation)
 		# print('Current velocity: ', self.current_velocity)
 
 	def on_goal_received(self, goal):
