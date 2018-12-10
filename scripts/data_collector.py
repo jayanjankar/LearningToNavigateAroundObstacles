@@ -25,6 +25,7 @@ class Trainer(object):
 		
 		self.frame_idx = 1
 		self.data_idx = 0
+		self.trajectory_idx = 26
 		self.rate = rate
 
 		self.current_frame = None
@@ -34,7 +35,8 @@ class Trainer(object):
 		self.current_goal = (0,0,0) # (x, y, angle_z)
 		self.current_odom_position = (0,0) # (x,y)
 
-		self.data_dir = 'data'
+		
+		self.data_dir = 'data/traj' + str(self.trajectory_idx) + '/'
 		for file_i in os.listdir(self.data_dir):
 			if 'npz' in file_i:
 				num = int(file_i.split(".")[0])
